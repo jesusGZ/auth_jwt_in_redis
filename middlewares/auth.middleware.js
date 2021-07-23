@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const redis_client = require('../redis_connect');
+const redis_client = require('../redis_connection');
 
 
 function verifyToken(req, res, next) {
@@ -32,7 +32,7 @@ function verifyRefreshToken(req, res, next) {
         const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
         req.userData = decoded;
 
-        // verify if token is in store or not
+        // verificar si el token está en la tienda o no
         redis_client.get(decoded.sub.toString(), (err, data) => {
             if(err) throw err;
 

@@ -1,6 +1,6 @@
 const User = require('../models/user.model');
 const jwt = require('jsonwebtoken');
-const redis_client = require('../redis_connect');
+const redis_client = require('../redis_connection');
 
 async function Register(req, res){
 
