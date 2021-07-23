@@ -1,26 +1,35 @@
-require('dotenv').config();
 const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
+const http = require('http');
+const https = require('https');
 
-const version = process.env.VERSION
+const Config = require("./models/constants/config");
+let config = new Config();
 
-mongoose.connect(`mongodb://${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}?authSource=admin`, {
-      user: `${process.env.DB_USER}`, pass: `${process.env.DB_PASS}`,
+const cabeceras = require('./middlewares/verbosHttp')
+app.use(cabeceras)
+
+const morgan = require('morgan');
+app.use(morgan('dev'));
+
+const bodyParser = require('body-parser');
+app.use(bodyParser.json({limit: '500kb', extended: true}));
+app.use(bodyParser.urlencoded({limit: '500kb', extended: true}));
+
+
+
+mongoose.connect(`mongodb://${config.mongo().host}:${config.mongo().port}/${config.mongo().db}?authSource=admin`, {
+      user: `${config.mongo().user}`, pass: `${config.mongo().pass}`,
       useNewUrlParser: true,
       useUnifiedTopology: true,
       useCreateIndex: true,
     });
 
-// middileware
-app.use(express.json());
+require('./routes/index.route')(app);
+require('./routes/default/index')(app);
 
-// routes
-const auth_routes = require('./routes/auth.route');
-const user_routes = require('./routes/user.route');
-
-
-app.use(`/${version}/auth`, auth_routes);
-app.use(`/${version}/user`, user_routes);
-
-app.listen(process.env.PORT, () => console.log('El servidor esta corriendo..'));
+// inicializacion del servidor
+http.createServer(app).listen( config.service().port, () =>{
+  console.log('[HTTP] El servidor esta escuchando en el puerto:' + config.service().port); 
+}); 
