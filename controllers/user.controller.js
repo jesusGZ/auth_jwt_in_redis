@@ -1,8 +1,14 @@
 const User = require('../models/schemas/user.schema');
 const jwt = require('jsonwebtoken');
 const redis_client = require('../redis_connection');
+const Config = require("../models/constants/config");
+let config = new Config();
+const db = require("../models/connection");
+const DB = new db();
 
 async function Register(req, res){
+
+    DB.connect(config.mongo());
 
     const user = new User({
         username: req.body.username,
@@ -11,8 +17,10 @@ async function Register(req, res){
 
     try {
         const saved_user = await user.save();
+        DB.disconnect()
         res.json({status: true, message: "Usuario registrado con exito.", data: saved_user});
     } catch (error) {
+        DB.disconnect()
         res.status(400).json({status: false, message: "Algo salió mal.", data: error});
     }
 }
@@ -22,15 +30,19 @@ async function Login (req, res) {
     const password = req.body.password;
 
     try {
+        DB.connect(config.mongo());
+
         const user = await User.findOne({username: username, password: password}).exec();
         
         if(user === null) res.status(401).json({status: false, message: "credenciales incorrectas."});
         console.log('user', user);
-        const access_token = jwt.sign({sub: user._id}, process.env.JWT_ACCESS_SECRET, { expiresIn: process.env.JWT_ACCESS_TIME});
+        const access_token = jwt.sign({sub: user._id}, config.jwt().access_key, { expiresIn: config.jwt().access_time });
         console.log('access_token', access_token);
         const refresh_token = GenerateRefreshToken(user._id);
+        DB.disconnect()
         return res.json({status: true, message: "Inicio de sesion exitoso.", data: {access_token, refresh_token}});
     } catch (error) {
+        DB.disconnect()
         return res.status(401).json({status: true, message: "Fallo el inicio de sesion.", data: error});
     }
 }
@@ -50,13 +62,13 @@ async function Logout (req, res) {
 
 function GetAccessToken (req, res) {
     const user_id = req.userData.sub;
-    const access_token = jwt.sign({sub: user_id}, process.env.JWT_ACCESS_SECRET, { expiresIn: process.env.JWT_ACCESS_TIME});
+    const access_token = jwt.sign({sub: user_id}, config.jwt().access_key, { expiresIn: config.jwt().access_time });
     const refresh_token = GenerateRefreshToken(user_id);
     return res.json({status: true, message: "success", data: {access_token, refresh_token}});
 }
 
 function GenerateRefreshToken(user_id) {
-    const refresh_token = jwt.sign({ sub: user_id }, process.env.JWT_REFRESH_SECRET, { expiresIn: process.env.JWT_REFRESH_TIME });
+    const refresh_token = jwt.sign({ sub: user_id }, config.jwt().refresh_key, { expiresIn: config.jwt().refresh_time });
     
     redis_client.get(user_id.toString(), (err, data) => {
         if(err) throw err;
