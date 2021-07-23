@@ -17,15 +17,6 @@ const bodyParser = require('body-parser');
 app.use(bodyParser.json({limit: '500kb', extended: true}));
 app.use(bodyParser.urlencoded({limit: '500kb', extended: true}));
 
-
-
-mongoose.connect(`mongodb://${config.mongo().host}:${config.mongo().port}/${config.mongo().db}?authSource=admin`, {
-      user: `${config.mongo().user}`, pass: `${config.mongo().pass}`,
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      useCreateIndex: true,
-    });
-
 require('./routes/index.route')(app);
 require('./routes/default/index')(app);
 
