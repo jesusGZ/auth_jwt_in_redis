@@ -7,7 +7,7 @@ const https = require('https');
 const Config = require("./models/constants/config");
 let config = new Config();
 
-const cabeceras = require('./middlewares/verbosHttp')
+const cabeceras = require('./middlewares/verbosHttp.middleware')
 app.use(cabeceras)
 
 const morgan = require('morgan');
@@ -33,3 +33,7 @@ require('./routes/default/index')(app);
 http.createServer(app).listen( config.service().port, () =>{
   console.log('[HTTP] El servidor esta escuchando en el puerto:' + config.service().port); 
 }); 
+
+/* https.createServer(app).listen( config.service().port, () =>{
+  console.log('[HTTPS] El servidor esta escuchando en el puerto:' + config.service().port); 
+});  */
