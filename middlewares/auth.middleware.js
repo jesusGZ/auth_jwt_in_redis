@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const redis_client = require('../redis_connection');
+const redis_client = require('../models/conexion/redis_connection');
 
 
 function verifyToken(req, res, next) {

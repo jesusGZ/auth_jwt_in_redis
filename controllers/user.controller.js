@@ -1,11 +1,11 @@
 const User = require('../models/schemas/user.schema');
 const jwt = require('jsonwebtoken');
-const redis_client = require('../redis_connection');
+const redis_client = require('../models/conexion/redis_connection');
 const Config = require("../models/constants/config");
 const config = new Config();
 const Response = require('../models/constants/response');
 const response = new Response();
-const db = require("../models/connection");
+const db = require("../models/conexion/connection");
 const DB = new db();
 
 async function Register(req, res){
