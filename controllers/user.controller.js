@@ -2,7 +2,9 @@ const User = require('../models/schemas/user.schema');
 const jwt = require('jsonwebtoken');
 const redis_client = require('../redis_connection');
 const Config = require("../models/constants/config");
-let config = new Config();
+const config = new Config();
+const Response = require('../models/constants/response');
+const response = new Response();
 const db = require("../models/connection");
 const DB = new db();
 
@@ -18,10 +20,10 @@ async function Register(req, res){
     try {
         const saved_user = await user.save();
         DB.disconnect()
-        res.json({status: true, message: "Usuario registrado con exito.", data: saved_user});
+        response.success(saved_user, 'Usuario registrado con exito.')
     } catch (error) {
         DB.disconnect()
-        res.status(400).json({status: false, message: "Algo salió mal.", data: error});
+        response.progress(error)
     }
 }
 
@@ -34,16 +36,20 @@ async function Login (req, res) {
 
         const user = await User.findOne({username: username, password: password}).exec();
         
-        if(user === null) res.status(401).json({status: false, message: "credenciales incorrectas."});
+        if(user === null) response.processValidation('credenciales incorrectas.')
+        
         console.log('user', user);
         const access_token = jwt.sign({sub: user._id}, config.jwt().access_key, { expiresIn: config.jwt().access_time });
+        
         console.log('access_token', access_token);
         const refresh_token = GenerateRefreshToken(user._id);
+
         DB.disconnect()
-        return res.json({status: true, message: "Inicio de sesion exitoso.", data: {access_token, refresh_token}});
+        response.success({access_token, refresh_token}, 'Inicio de sesion exitoso.')
+
     } catch (error) {
         DB.disconnect()
-        return res.status(401).json({status: true, message: "Fallo el inicio de sesion.", data: error});
+        response.process(error, 'Fallo el inicio de sesion.')
     }
 }
 
@@ -57,7 +63,7 @@ async function Logout (req, res) {
     // token de acceso actual en lista negra
     await redis_client.set('BL_' + user_id.toString(), token);
     
-    return res.json({status: true, message: "success."});
+    response.success()
 }
 
 function GetAccessToken (req, res) {
