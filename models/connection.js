@@ -1,5 +1,5 @@
+require('events').EventEmitter.defaultMaxListeners = 25
 const mongoose = require("mongoose");
-
 class conexion{
    connect(config) {
      

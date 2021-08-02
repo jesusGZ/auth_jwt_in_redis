@@ -1,8 +1,8 @@
 const express = require('express');
 const app = express();
-const mongoose = require('mongoose');
 const http = require('http');
 const https = require('https');
+require('events').EventEmitter.defaultMaxListeners = 25;
 
 const Config = require("./models/constants/config");
 let config = new Config();
